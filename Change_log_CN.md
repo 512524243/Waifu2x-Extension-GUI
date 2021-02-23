@@ -5,8 +5,190 @@
 #### [⭐最新版](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest)
 ---
 #### 🗂全部历史版本安装包合集:
-- ☁腾讯微云：https://share.weiyun.com/5abrs1W 密码：s4monw
 - ☁百度云: https://pan.baidu.com/s/14grAcWeHs6v71tLnE1-81w 提取码: swe7
+---
+## [v3.11.19](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v3.11.19)
+#### 更新日志:
+- 新特性: 借助机器学习对视频进行插帧(补帧). 您可以选择在对进行视频放大后对视频进行插帧, 或者仅对视频进行插帧.
+- 新增内置插帧引擎: RIFE-NCNN-Vulkan, CAIN-NCNN-Vulkan.
+- 新的用户界面布局设计.
+- 多项错误修复.
+---
+## [v2.71.22](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.71.22)
+#### 更新日志:
+- 最大线程数量将不再受到CPU逻辑核心数量的限制.
+- 加快组装GIF的速度.
+- 停止处理文件后，杀死滞留在后台的子进程。
+- 修复bug: 当使用Anime4k时,GIF放大倍率错误.
+- 修复bug: 即便在处理文件时,从列表中移除文件的热键依旧可用.
+- 修复bug: 即使[剩余时间]和[预计完成时间]没有被显示,但是仍旧被计算.
+- 修复bug: 暂停后修改视频片段时长然后继续处理会造成视频顺序错乱.
+---
+## [v2.71.12](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.71.12)
+#### 更新日志:
+- 重写大量代码,大幅提升所有引擎在处理视频和GIF时的效率,速度和稳定性.
+- 旧版本的waifu2x-ncnn-vulkan引擎不再支持使用多显卡处理视频和GIF.
+- 修复bug: 某些情况下无法正确计算视频的比特率.
+- 修复bug: 使用srmd-ncnn-vulkan时放大倍率可能不准确.
+- 修复bug: 因ImageMagick与新版AMD显卡驱动不兼容而无法组装GIF.
+- 更新ImageMagick,FFmpeg&FFprobe.
+---
+## [v2.62.13](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.62.13)
+#### 更新日志:
+- 改进SRMD-NCNN-Vulkan的性能.
+- 修复错误: 使用SRMD-NCNN-Vulkan时的放大倍率错误.
+---
+## [v2.62.12](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.62.12)
+#### 更新日志:
+- 加快视频和gif的处理速度。
+- 替换掉python扩展以提高性能。
+- 改进下载速度, 视频处理流程, 多线程性能以及其他性能改进。
+- 更详尽的工具提示，修正错字。
+- 修复错误：无法正确处理可变帧率视频。
+- 修复错误：兼容性测试结束后，waifu2x-caffe进程可能滞留在后台。
+---
+## [v2.61.13](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.61.13)
+#### 更新日志:
+- 新特性: 当文件分辨率大于指定分辨率时,自动跳过文件.
+- 新特性: Anime4k新增CUDA运算支持.
+- 预载入引擎设定以改进性能,以及其他性能改进.
+- 更新并适配新版Anime4K.
+- 改进读取图片分辨率的方式.
+- 根据 [@Nova-Aurora](https://github.com/Nova-Aurora) 的建议改进GUI.
+- 更新FFmpeg&FFprobe,ImageMagick.
+- 修复英语翻译问题(感谢 [@Nova-Aurora](https://github.com/Nova-Aurora)), 以及GUI问题修复.
+- 修复bug: 在用户指定处理器后, Waifu2x-Converter的[禁用GPU]选项将不会生效.
+- 修复bug: 如果在处理图片时暂停,会产生垃圾文件.
+---
+## [v2.59.15](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.59.15)
+```
+v2.59.15:
+- 改进 GUI.
+
+v2.59.04-beta:
+- 仅在指定的图片格式不支持Alpha通道时,才将图像强制保存为PNG。
+- 添加按钮以将块大小调整为2的n次方。
+- 性能优化。
+- 编辑工具提示。
+- 其他改进。
+- 更新ImageMagick，FFmpeg＆FFprobe。
+
+v2.59.03-beta：
+- 当文件列表为空时，自动禁用[保存文件列表]按钮。
+- 更紧凑的GUI和其他GUI改进。
+- 编辑工具提示和中文翻译。
+
+v2.59.02-beta：
+- 新功能：重置文件列表比例。
+- 新功能：针对每种文件的文件计数。
+- 新图标。
+- 性能优化。
+- 对GUI的其他改进。
+- 完整的翻译。
+- 修复bug：“加载文件”列表时未禁用[添加文件]按钮。
+- 修复bug：使用[移除项目]的右键菜单后，文件列表的横向标题数据将丢失。
+
+v2.59.01-beta：
+- 新功能：现在您可以通过拖动来更轻松地隐藏组件。
+- 改善GUI设计。
+
+v2.58.14-beta：
+- 新功能：现在，您可以调整文件列表的水平宽度。
+- 将[移至回收站]选项移至[删除原始文件]的右键菜单
+- 对GUI的其他改进。
+- 当用户尝试启用多GPU并且GPU ID列表为空时，通知用户。
+- 优化性能。
+```
+---
+## [v2.58.13](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.58.13)
+#### 更新日志:
+- 新特性: Waifu2x-ncnn-vulkan 引擎支持使用CPU运算.
+- 新特性: 文件列表支持键盘快捷键.
+- 当文件列表内的文件已经全部处理完成或者被删除时, 提示用户.
+- 更新 Waifu2x-NCNN-Vulkan,ImageMagick,FFmpeg&FFprobe.
+- 与未来版本的NCNN-Vulkan引擎兼容.
+- 更加详尽的工具提示.
+---
+## [v2.57.41](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.57.41)
+#### 更新日志:
+- ♥预祝各位新年快乐, 感谢各位在2020年中对本项目的支持.
+- 使用强制重试时将不会再改变设定值.
+- 如果优化后的GIF体积不小于原GIF,则其不会被用于替换原GIF.
+- 更新Waifu2x-converter,Anime4K,ImageMagick,FFmpeg&FFprobe.
+- 优化性能,修正错字,以及其他改进.
+- 修复bug: 如果用户将"gif"放入文件扩展名列表中,会导致gif文件错位.
+- 修复bug: 有时文件列表会随机横向滑动.
+---
+## [v2.57.31](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.57.31)
+#### 更新日志:
+- 更新Anime4K,FFmpeg&FFprobe,ImageMagick.
+- 改进性能与兼容性.
+- 一些其他小改进
+- ✅修正多个(英语)语法,UI以及兼容性问题.
+- ✅修复多个bug.
+---
+## [v2.57.21](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.57.21)
+#### 更新日志:
+- 新特性: 智能检测透明通道是否丢失, 并重新处理文件.
+- 新特性: [`总是预处理带有Alpha通道的图片`].
+- 更新 ImageMagick.
+- 改进性能与稳定性.
+- 修复bug: NCNN-Vulkan 系列引擎无法保留某些特殊png图片的透明通道.
+- 修正错字.
+---
+## [v2.57.12](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.57.12)
+#### 更新日志:
+- 优化文件列表, 大大提高了文件读取速度.
+- 其他性能优化.
+- 更新 FFmpeg＆FFprobe, ImageMagick.
+- 修正了工具提示中的英文拼写错误和语法问题. (感谢 @CaptainStabs 反馈)
+---
+## [v2.56.95](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.56.95)
+#### 更新日志:
+- 新特性: 现在您可以将图片另存为多种格式.(感谢 [@loafylemon](https://github.com/loafylemon) 的建议)
+- 优化性能.
+- 更新 FFmpeg&FFprobe.
+- 移除多余的功能,代码,以及注释.
+- 修复bug: 因帧率不正确导致的视频音画不同步.(感谢 [@CAFUCSteven](https://github.com/CAFUCSteven) 的反馈以及协助测试.)
+- 以及其他改进.
+---
+## [v2.56.82](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.56.82)
+#### 更新日志:
+- 新特性: 现在您可以对文件列表内的文件进行排序.
+- 对文件列表的其他改进.
+- 添加更多好看的图标.
+- 更新FFmpeg&FFprobe,ImageMagick.
+- 改进性能.
+- 减少缓存文件.
+- 添加更多提示信息.
+- 修复多个bug.
+---
+## [v2.56.71](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.56.71)
+#### 更新日志:
+- 新特性:文件列表右键菜单支持应用与取消自定义分辨率设定.
+- 新特性:将文件输出到指定路径时可以选择保留上级文件夹.
+- 性能优化.
+- 改进用户界面.
+- 更新与适配Anime4KCPP,FFmpeg&FFprobe,ImageMagick.
+- 修复多个bug.
+---
+## [v2.56.52](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.56.52)
+#### 更新日志:
+- 新特性:可启用[替换原文件]以直接用处理后的文件替换原文件.(附加设置,可选,默认禁用)
+- 性能优化.
+- 更新FFmpeg&FFprobe,ImageMagick.
+- 修复bug.
+---
+## [v2.56.46](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.56.46)
+#### 更新日志:
+- 在切换更新通道后自动检查更新.
+- 为[移除条目]按钮添加右键菜单.
+- 改善文件列表的易用性.
+- 性能优化.
+- 更新waifu2x-caffe,ImageMagick.
+- 增强waifu2x-caffe引擎,Anime4k引擎的兼容性.
+- 自动调整引擎设置后跳转到主页.
+- 修复bug:鼠标右键无法选中文件列表内的文件.
 ---
 ## [v2.56.41](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/tag/v2.56.41)
 #### 更新日志:

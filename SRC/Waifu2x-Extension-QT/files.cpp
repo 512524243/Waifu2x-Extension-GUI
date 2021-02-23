@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2020  Aaron Feng
+    Copyright (C) 2021  Aaron Feng
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -40,6 +40,8 @@ void MainWindow::dropEvent(QDropEvent *event)
     if(urls.isEmpty())
         return;
     //================== 界面管制 ========================
+    ui_tableViews_setUpdatesEnabled(false);
+    //================
     ui->groupBox_Setting->setEnabled(0);
     ui->groupBox_FileList->setEnabled(0);
     ui->groupBox_InputExt->setEnabled(0);
@@ -50,7 +52,6 @@ void MainWindow::dropEvent(QDropEvent *event)
     emit Send_TextBrowser_NewMessage(tr("Adding files, please wait."));
     //===================================================
     QtConcurrent::run(this, &MainWindow::Read_urls, urls);
-    //=============
 }
 /*
 读取urls
@@ -60,19 +61,24 @@ void MainWindow::Read_urls(QList<QUrl> urls)
     Progressbar_MaxVal = urls.size();
     Progressbar_CurrentVal = 0;
     emit Send_PrograssBar_Range_min_max(0, Progressbar_MaxVal);
-    foreach(QUrl url, urls)
+    if(ui->checkBox_ScanSubFolders->isChecked())
     {
-        if(ui->checkBox_ScanSubFolders->isChecked())
+        foreach(QUrl url, urls)
         {
             Add_File_Folder_IncludeSubFolder(url.toLocalFile());
+            emit Send_progressbar_Add();
         }
-        else
+    }
+    else
+    {
+        foreach(QUrl url, urls)
         {
             Add_File_Folder(url.toLocalFile());
+            emit Send_progressbar_Add();
         }
-        emit Send_progressbar_Add();
     }
     emit Send_Read_urls_finfished();
+    return;
 }
 /*
 读取urls
@@ -81,6 +87,8 @@ void MainWindow::Read_urls(QList<QUrl> urls)
 void MainWindow::Read_urls_finfished()
 {
     //================== 解除界面管制 ========================
+    ui_tableViews_setUpdatesEnabled(true);
+    //===
     ui->groupBox_Setting->setEnabled(1);
     ui->groupBox_FileList->setEnabled(1);
     ui->pushButton_Start->setEnabled(1);
@@ -109,29 +117,32 @@ void MainWindow::Read_urls_finfished()
     {
         ui->label_DropFile->setVisible(0);//隐藏文件投放label
         ui->tableView_image->setVisible(1);
-        ui->pushButton_ClearList->setVisible(1);
-        ui->pushButton_RemoveItem->setVisible(1);
     }
     if(AddNew_gif)
     {
         ui->label_DropFile->setVisible(0);//隐藏文件投放label
         ui->tableView_gif->setVisible(1);
-        ui->pushButton_ClearList->setVisible(1);
-        ui->pushButton_RemoveItem->setVisible(1);
     }
     if(AddNew_video)
     {
         ui->label_DropFile->setVisible(0);//隐藏文件投放label
         ui->tableView_video->setVisible(1);
-        ui->pushButton_ClearList->setVisible(1);
-        ui->pushButton_RemoveItem->setVisible(1);
     }
+    //===================
     ui->tableView_gif->scrollToBottom();
     ui->tableView_image->scrollToBottom();
     ui->tableView_video->scrollToBottom();
+    QScrollBar *image_ScrBar = ui->tableView_image->horizontalScrollBar();
+    image_ScrBar->setValue(0);
+    QScrollBar *gif_ScrBar = ui->tableView_gif->horizontalScrollBar();
+    gif_ScrBar->setValue(0);
+    QScrollBar *video_ScrBar = ui->tableView_video->horizontalScrollBar();
+    video_ScrBar->setValue(0);
+    //==========
     AddNew_image=false;
     AddNew_gif=false;
     AddNew_video=false;
+    //============
     Table_FileCount_reload();
 }
 
@@ -153,9 +164,10 @@ void MainWindow::Add_File_Folder(QString Full_Path)
         QString Full_Path_File = "";
         if(!FileNameList.isEmpty())
         {
+            QString tmp="";
             for(int i = 0; i < FileNameList.size(); i++)
             {
-                QString tmp = FileNameList.at(i);
+                tmp = FileNameList.at(i);
                 Full_Path_File = Full_Path + "/" + tmp;
                 FileList_Add(tmp, Full_Path_File);
             }
@@ -180,20 +192,20 @@ void MainWindow::Add_File_Folder_IncludeSubFolder(QString Full_Path)
         QString Full_Path_File = "";
         if(!FileNameList.isEmpty())
         {
+            QString tmp="";
             for(int i = 0; i < FileNameList.size(); i++)
             {
-                QString tmp = FileNameList.at(i);
+                tmp = FileNameList.at(i);
                 Full_Path_File = Full_Path + "/" + tmp;
                 QFileInfo fileinfo_tmp(Full_Path_File);
                 if(fileinfo_tmp.isFile())
                 {
-                    if(QFile::exists(Full_Path_File))
-                        FileList_Add(tmp, Full_Path_File);
+                    if(QFile::exists(Full_Path_File))FileList_Add(tmp, Full_Path_File);
                 }
                 else
                 {
-                    if(QFile::exists(Full_Path_File))
-                        Add_File_Folder_IncludeSubFolder(Full_Path_File);
+                    //if(QFile::exists(Full_Path_File))
+                    if(file_isDirExist(Full_Path_File))Add_File_Folder_IncludeSubFolder(Full_Path_File);
                 }
             }
         }
@@ -256,11 +268,12 @@ QStringList MainWindow::file_getFileNames_in_Folder_nofilter(QString path)
 int MainWindow::FileList_Add(QString fileName, QString SourceFile_fullPath)
 {
     QFileInfo fileinfo(SourceFile_fullPath);
-    QString file_ext = fileinfo.suffix();
+    QString file_ext = fileinfo.suffix().toLower();
     //============================  判断是否为图片 ===============================
-    QString Ext_image_str = ui->Ext_image->text();
+    QString Ext_image_str = ui->Ext_image->text().toLower();
     QStringList nameFilters_image = Ext_image_str.split(":");
-    if (nameFilters_image.contains(file_ext.toLower()))
+    nameFilters_image.removeAll("gif");
+    if (nameFilters_image.contains(file_ext))
     {
         AddNew_image=true;
         int rowNum = Table_image_get_rowNum();
@@ -281,13 +294,14 @@ int MainWindow::FileList_Add(QString fileName, QString SourceFile_fullPath)
         return 0;
     }
     //============================  判断是否为视频 ===============================
-    QString Ext_video_str = ui->Ext_video->text();
+    QString Ext_video_str = ui->Ext_video->text().toLower();
     QStringList nameFilters_video = Ext_video_str.split(":");
-    if (nameFilters_video.contains(file_ext.toLower()))
+    nameFilters_video.removeAll("gif");
+    if (nameFilters_video.contains(file_ext))
     {
-        if(file_ext!="mp4"&&file_ext.toLower()=="mp4")
+        if(file_ext!="mp4"&&file_ext=="mp4")
         {
-            QString file_name = file_getBaseName(fileinfo.filePath());
+            QString file_name = file_getBaseName(SourceFile_fullPath);
             QString file_ext = fileinfo.suffix();
             QString file_path = file_getFolderPath(fileinfo);
             QFile::rename(file_path+"/"+file_name+"."+file_ext,file_path+"/"+file_name+".mp4");
@@ -312,7 +326,7 @@ int MainWindow::FileList_Add(QString fileName, QString SourceFile_fullPath)
         return 0;
     }
     //============================  最后只能是gif ===============================
-    if(file_ext.toLower()=="gif")
+    if(file_ext=="gif")
     {
         int rowNum = Table_gif_get_rowNum();
         QMap<QString, QString> map;
@@ -468,53 +482,7 @@ void MainWindow::file_MoveToTrash( QString file )
         return;
     }
 }
-/*
-移动文件
-*/
-void MainWindow::file_MoveFile(QString Orginal,QString Target,QString SourceFilePath)
-{
-    MoveFile_QMutex.lock();
-    if(QFile::exists(Orginal))
-    {
-        //判断是否要保留文件名,若要保留,则替换掉原目标路径
-        if(ui->checkBox_OutPath_KeepOriginalFileName->isChecked())
-        {
-            QFileInfo fileinfo_source(SourceFilePath);
-            QString file_name = file_getBaseName(fileinfo_source.filePath());
-            QFileInfo fileinfo_Target(Target);
-            QString file_ext = fileinfo_Target.suffix();
-            QString file_path = file_getFolderPath(fileinfo_Target);
-            Target = file_path+"/"+file_name+"."+file_ext;
-        }
-        //判断输出路径是否有和目标文件重名的 以及 是否启用了直接覆盖
-        if(QFile::exists(Target)&&(ui->checkBox_OutPath_Overwrite->isChecked()==false))
-        {
-            while(true)
-            {
-                int random = QRandomGenerator::global()->bounded(1,10000);
-                QFileInfo fileinfo_tmp(Target);
-                QString file_name = file_getBaseName(fileinfo_tmp.filePath());
-                QString file_ext = fileinfo_tmp.suffix();
-                QString file_path = file_getFolderPath(fileinfo_tmp);
-                Target = file_path+"/"+file_name+"_"+QString::number(random,10)+"."+file_ext;
-                if(!QFile::exists(Target))break;
-            }
-        }
-        if(ui->checkBox_OutPath_Overwrite->isChecked()==true)
-        {
-            QFile::remove(Target);
-        }
-        if(QFile::rename(Orginal,Target)==false)
-        {
-            emit Send_TextBrowser_NewMessage(tr("Error! Failed to move [")+Orginal+tr("] to [")+Target+"]");
-        }
-    }
-    else
-    {
-        emit Send_TextBrowser_NewMessage(tr("Error! Original file [")+Orginal+tr("] does not exists."));
-    }
-    MoveFile_QMutex.unlock();
-}
+
 /*
 获取文件夹路径(去除末尾的"/")
 */
@@ -606,8 +574,7 @@ bool MainWindow::file_isFilesFolderWritable_row_video(int rowNum)
     else
     {
         emit Send_TextBrowser_NewMessage(tr("Error occured when processing [")+SourceFile_fullPath+tr("]. Error: [Insufficient permissions, administrator permissions is needed.]"));
-        QString status = "Failed";
-        emit Send_Table_video_ChangeStatus_rowNumInt_statusQString(rowNum, status);
+        emit Send_Table_video_ChangeStatus_rowNumInt_statusQString(rowNum, "Failed");
         return false;
     }
 }
@@ -636,9 +603,9 @@ bool MainWindow::file_OpenFile(QString FilePath)
 {
     if(QFile::exists(FilePath))
     {
-        if(QDesktopServices::openUrl(QUrl("file:"+FilePath,QUrl::TolerantMode))==false)
+        if(QDesktopServices::openUrl(QUrl("file:"+QUrl::toPercentEncoding(FilePath),QUrl::TolerantMode))==false)
         {
-            ExecuteCMD_batFile("start \"\" \""+FilePath+"\"");
+            ExecuteCMD_batFile("start \"\" \""+FilePath.replace("%","%%")+"\"",false);
         }
         return true;
     }
@@ -647,3 +614,5 @@ bool MainWindow::file_OpenFile(QString FilePath)
         return false;
     }
 }
+
+

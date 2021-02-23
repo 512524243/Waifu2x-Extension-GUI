@@ -1,4 +1,4 @@
-#    Copyright (C) 2020  Aaron Feng
+#    Copyright (C) 2021  Aaron Feng
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -41,12 +41,14 @@ SOURCES += \
     CustomResolution.cpp \
     Donate.cpp \
     Finish_Action.cpp \
+    Frame_Interpolation.cpp \
     Right-click_Menu.cpp \
     SystemTrayIcon.cpp \
     Web_Activities.cpp \
     checkupdate.cpp \
     files.cpp \
     gif.cpp \
+    image.cpp \
     main.cpp \
     mainwindow.cpp \
     progressBar.cpp \
@@ -85,5 +87,3 @@ RESOURCES += \
     icon.qrc
 
 RC_ICONS =icon/icon.ico
-
-

@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2020  Aaron Feng
+    Copyright (C) 2021  Aaron Feng
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -32,7 +32,7 @@ void MainWindow::CurrentFileProgress_Start(QString FileName,int FrameNum)
     //=================================
     ui->label_FrameProgress_CurrentFile->setText("0/"+QString::number(FrameNum,10));
     ui->label_TimeRemain_CurrentFile->setText(tr("Time remaining:NULL"));
-    ui->label_TimeCost_CurrentFile->setText(tr("Time cost:NULL"));
+    ui->label_TimeCost_CurrentFile->setText(tr("Time taken:NULL"));
     ui->label_ETA_CurrentFile->setText(tr("ETA:NULL"));
     //=================================
     TimeCost_CurrentFile = 0;
@@ -74,4 +74,54 @@ void MainWindow::CurrentFileProgress_progressbar_Add_SegmentDuration(int Segment
     NewTaskFinished_CurrentFile=true;
     ui->progressBar_CurrentFile->setValue(TaskNumFinished_CurrentFile);
     ui->label_FrameProgress_CurrentFile->setText(QString::number(TaskNumFinished_CurrentFile,10)+"/"+QString::number(TaskNumTotal_CurrentFile,10));
+}
+/*
+进度条 进度+片段時長
+*/
+void MainWindow::CurrentFileProgress_progressbar_SetFinishedValue(int FinishedValue)
+{
+    TaskNumFinished_CurrentFile=FinishedValue;
+    NewTaskFinished_CurrentFile=true;
+    ui->progressBar_CurrentFile->setValue(TaskNumFinished_CurrentFile);
+    ui->label_FrameProgress_CurrentFile->setText(QString::number(TaskNumFinished_CurrentFile,10)+"/"+QString::number(TaskNumTotal_CurrentFile,10));
+}
+/*
+监视文件夹内文件数量
+*/
+void MainWindow::CurrentFileProgress_WatchFolderFileNum(QString FolderPath)
+{
+    QStringList FilesNameList;
+    do
+    {
+        if(FileProgressWatch_isEnabled==false)return;
+        Delay_msec_sleep(2300);
+        if(file_isDirExist(FolderPath)==false)return;
+        FilesNameList = file_getFileNames_in_Folder_nofilter(FolderPath);
+        emit Send_CurrentFileProgress_progressbar_SetFinishedValue(FilesNameList.size());
+    }
+    while(true);
+}
+/*
+监视文件夹内文件数量
+*/
+void MainWindow::CurrentFileProgress_WatchFolderFileNum_Textbrower(QString SourceFile_fullPath,QString FolderPath,int TotalFileNum)
+{
+    QStringList FilesNameList;
+    int OLD_num=0;
+    int New_num=0;
+    do
+    {
+        if(FileProgressWatch_isEnabled==false)return;
+        Delay_msec_sleep(2300);
+        //==========
+        if(file_isDirExist(FolderPath)==false)return;
+        //=========
+        New_num = file_getFileNames_in_Folder_nofilter(FolderPath).size();
+        if(New_num!=OLD_num)
+        {
+            OLD_num=New_num;
+            emit Send_TextBrowser_NewMessage(tr("File name:[")+SourceFile_fullPath+tr("]  Scale progress:[")+QString::number(New_num,10)+"/"+QString::number(TotalFileNum,10)+tr("] Frames"));
+        }
+    }
+    while(true);
 }

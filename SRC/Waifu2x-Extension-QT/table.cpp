@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2020  Aaron Feng
+    Copyright (C) 2021  Aaron Feng
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -47,30 +47,125 @@ void MainWindow::Init_Table()
     Table_model_video->setHeaderData(3, Qt::Horizontal, tr("Custom resolution(Width x Height)"));
     ui->tableView_video->horizontalHeader()->setDefaultAlignment(Qt::AlignLeft);
     ui->tableView_video->setModel(Table_model_video);
-    //=============================================
     //将横向表头设置为可见
     ui->tableView_video->horizontalHeader()->setVisible(1);
     ui->tableView_gif->horizontalHeader()->setVisible(1);
     ui->tableView_image->horizontalHeader()->setVisible(1);
+    //=============================================
+    emit Send_Table_EnableSorting(1);//启用文件列表的排序功能
 }
-
+/*
+重载Tableview下的文件数量统计
+*/
+int MainWindow::Table_FileCount_reload()
+{
+    long int filecount_image=Table_model_image->rowCount();
+    long int filecount_gif=Table_model_gif->rowCount();
+    long int filecount_video=Table_model_video->rowCount();
+    long int filecount_total=filecount_image+filecount_gif+filecount_video;
+    //====================
+    // 列表内有文件
+    //====================
+    if(filecount_total>0)
+    {
+        //===========
+        //显示文件数量
+        //===========
+        ui->label_FileCount->setVisible(1);
+        ui->label_FileCount->setText(QString(tr("File count: %1")).arg(filecount_total));
+        ui->label_FileCount->setToolTip(QString(tr("Image: %1\nGIF: %2\nVideo: %3")).arg(filecount_image).arg(filecount_gif).arg(filecount_video));
+        //=================
+        //启用控制按钮
+        //=================
+        ui->pushButton_ClearList->setEnabled(1);
+        ui->pushButton_RemoveItem->setEnabled(1);
+        //===============================================
+        //根据每个列表内文件数量逐个判断是否显示这个列表
+        //===============================================
+        int TableView_VisibleCount = 0;
+        ui->label_DropFile->setVisible(0);//隐藏文件投放label
+        if(filecount_image>0)
+        {
+            ui->tableView_image->setVisible(1);
+            TableView_VisibleCount++;
+        }
+        else
+        {
+            curRow_image = -1;
+            ui->tableView_image->clearSelection();
+            ui->tableView_image->setVisible(0);
+        }
+        //===
+        if(filecount_gif>0)
+        {
+            ui->tableView_gif->setVisible(1);
+            TableView_VisibleCount++;
+        }
+        else
+        {
+            curRow_gif = -1;
+            ui->tableView_gif->clearSelection();
+            ui->tableView_gif->setVisible(0);
+        }
+        //===
+        if(filecount_video>0)
+        {
+            ui->tableView_video->setVisible(1);
+            TableView_VisibleCount++;
+        }
+        else
+        {
+            curRow_video = -1;
+            ui->tableView_video->clearSelection();
+            ui->tableView_video->setVisible(0);
+        }
+        //========================
+        ui->pushButton_ResizeFilesListSplitter->setEnabled(TableView_VisibleCount>1);//当可见的文件列表数量大于1时启用重置文件列表比例按钮
+        //========================
+        ui->pushButton_SaveFileList->setEnabled(1);//列表内有文件时自动启用保存文件列表的按钮
+    }
+    //====================
+    // 列表内无文件
+    //====================
+    else
+    {
+        ui->label_FileCount->setVisible(0);//隐藏文件数量label
+        //===================
+        // 禁用文件列表控制按钮
+        //===================
+        ui->pushButton_ClearList->setEnabled(0);
+        ui->pushButton_RemoveItem->setEnabled(0);
+        ui->pushButton_ResizeFilesListSplitter->setEnabled(0);
+        //====================
+        //隐藏文件列表,取消选中
+        //====================
+        ui->label_DropFile->setVisible(1);
+        curRow_image = -1;
+        ui->tableView_image->clearSelection();
+        ui->tableView_image->setVisible(0);
+        curRow_gif = -1;
+        ui->tableView_gif->clearSelection();
+        ui->tableView_gif->setVisible(0);
+        curRow_video = -1;
+        ui->tableView_video->clearSelection();
+        ui->tableView_video->setVisible(0);
+        //========================
+        ui->pushButton_SaveFileList->setEnabled(0);//列表内没有文件时自动禁用保存文件列表的按钮
+    }
+    return 0;
+}
+//============================
+// 插入文件
+//============================
 void MainWindow::Table_image_insert_fileName_fullPath(QString fileName, QString SourceFile_fullPath)
 {
     mutex_Table_insert.lock();
     //=========
-    ui->tableView_image->setUpdatesEnabled(false);
     int rowNum = Table_model_image->rowCount();
     Table_model_image->setItem(rowNum, 0, new QStandardItem(fileName));
     Table_model_image->setItem(rowNum, 1, new QStandardItem(""));
     Table_model_image->setItem(rowNum, 2, new QStandardItem(SourceFile_fullPath));
     Table_model_image->setItem(rowNum, 3, new QStandardItem(""));
-    if(ui->checkBox_FileListAutoSlide->isChecked())
-    {
-        QAbstractItemModel *modessl = Table_model_image;
-        QModelIndex indextemp = modessl->index(rowNum, 1);
-        ui->tableView_image->scrollTo(indextemp);
-    }
-    ui->tableView_image->setUpdatesEnabled(true);
     mutex_Table_insert_finished.lock();
     Table_insert_finished=true;
     mutex_Table_insert_finished.unlock();
@@ -82,19 +177,11 @@ void MainWindow::Table_gif_insert_fileName_fullPath(QString fileName, QString So
 {
     mutex_Table_insert.lock();
     //=========
-    ui->tableView_gif->setUpdatesEnabled(false);
     int rowNum = Table_model_gif->rowCount();
     Table_model_gif->setItem(rowNum, 0, new QStandardItem(fileName));
     Table_model_gif->setItem(rowNum, 1, new QStandardItem(""));
     Table_model_gif->setItem(rowNum, 2, new QStandardItem(SourceFile_fullPath));
     Table_model_gif->setItem(rowNum, 3, new QStandardItem(""));
-    if(ui->checkBox_FileListAutoSlide->isChecked())
-    {
-        QAbstractItemModel *modessl = Table_model_gif;
-        QModelIndex indextemp = modessl->index(rowNum, 1);
-        ui->tableView_gif->scrollTo(indextemp);
-    }
-    ui->tableView_gif->setUpdatesEnabled(true);
     mutex_Table_insert_finished.lock();
     Table_insert_finished=true;
     mutex_Table_insert_finished.unlock();
@@ -106,19 +193,11 @@ void MainWindow::Table_video_insert_fileName_fullPath(QString fileName, QString 
 {
     mutex_Table_insert.lock();
     //=========
-    ui->tableView_video->setUpdatesEnabled(false);
     int rowNum = Table_model_video->rowCount();
     Table_model_video->setItem(rowNum, 0, new QStandardItem(fileName));
     Table_model_video->setItem(rowNum, 1, new QStandardItem(""));
     Table_model_video->setItem(rowNum, 2, new QStandardItem(SourceFile_fullPath));
     Table_model_video->setItem(rowNum, 3, new QStandardItem(""));
-    if(ui->checkBox_FileListAutoSlide->isChecked())
-    {
-        QAbstractItemModel *modessl = Table_model_video;
-        QModelIndex indextemp = modessl->index(rowNum, 1);
-        ui->tableView_video->scrollTo(indextemp);
-    }
-    ui->tableView_video->setUpdatesEnabled(true);
     mutex_Table_insert_finished.lock();
     Table_insert_finished=true;
     mutex_Table_insert_finished.unlock();
@@ -134,7 +213,7 @@ void MainWindow::Table_image_ChangeStatus_rowNumInt_statusQString(int rowNum, QS
     {
         QAbstractItemModel *modessl = Table_model_image;
         QModelIndex indextemp = modessl->index(rowNum, 1);
-        ui->tableView_image->scrollTo(indextemp);
+        ui->tableView_image->scrollTo(indextemp,QAbstractItemView::PositionAtCenter);
     }
     ui->tableView_image->setUpdatesEnabled(true);
 }
@@ -147,7 +226,7 @@ void MainWindow::Table_gif_ChangeStatus_rowNumInt_statusQString(int rowNum, QStr
     {
         QAbstractItemModel *modessl = Table_model_gif;
         QModelIndex indextemp = modessl->index(rowNum, 1);
-        ui->tableView_gif->scrollTo(indextemp);
+        ui->tableView_gif->scrollTo(indextemp,QAbstractItemView::PositionAtCenter);
     }
     ui->tableView_gif->setUpdatesEnabled(true);
 }
@@ -160,7 +239,7 @@ void MainWindow::Table_video_ChangeStatus_rowNumInt_statusQString(int rowNum, QS
     {
         QAbstractItemModel *modessl = Table_model_video;
         QModelIndex indextemp = modessl->index(rowNum, 1);
-        ui->tableView_video->scrollTo(indextemp);
+        ui->tableView_video->scrollTo(indextemp,QAbstractItemView::PositionAtCenter);
     }
     ui->tableView_video->setUpdatesEnabled(true);
 }
@@ -214,9 +293,7 @@ void MainWindow::Table_video_CustRes_Cancel_rowNumInt(int rowNum)
 void MainWindow::Table_ChangeAllStatusToWaiting()
 {
     QMutex_Table_ChangeAllStatusToWaiting.lock();
-    ui->tableView_image->setUpdatesEnabled(false);
-    ui->tableView_gif->setUpdatesEnabled(false);
-    ui->tableView_video->setUpdatesEnabled(false);
+    ui_tableViews_setUpdatesEnabled(false);
     bool ReProcFinFiles = ui->checkBox_ReProcFinFiles->isChecked();
     int rowNum = Table_model_image->rowCount();
     for (int i = 0; i < rowNum; i++)
@@ -284,17 +361,13 @@ void MainWindow::Table_ChangeAllStatusToWaiting()
             }
         }
     }
-    ui->tableView_image->setUpdatesEnabled(true);
-    ui->tableView_gif->setUpdatesEnabled(true);
-    ui->tableView_video->setUpdatesEnabled(true);
+    ui_tableViews_setUpdatesEnabled(true);
     QMutex_Table_ChangeAllStatusToWaiting.unlock();
 }
 
 void MainWindow::Table_Clear()
 {
-    ui->tableView_image->setUpdatesEnabled(false);
-    ui->tableView_gif->setUpdatesEnabled(false);
-    ui->tableView_video->setUpdatesEnabled(false);
+    ui_tableViews_setUpdatesEnabled(false);
     //=====
     Table_model_image->clear();
     Table_model_gif->clear();
@@ -304,9 +377,7 @@ void MainWindow::Table_Clear()
     curRow_gif = -1;
     curRow_video = -1;
     //=====
-    ui->tableView_image->setUpdatesEnabled(true);
-    ui->tableView_gif->setUpdatesEnabled(true);
-    ui->tableView_video->setUpdatesEnabled(true);
+    ui_tableViews_setUpdatesEnabled(true);
 }
 
 int MainWindow::Table_image_get_rowNum()
@@ -348,25 +419,7 @@ QMap<QString, QString> MainWindow::Table_Read_status_fullpath(QStandardItemModel
     return Map_fullPath_status;
 }
 
-/*
-重载Tableview下的文件数量统计
-*/
-int MainWindow::Table_FileCount_reload()
-{
-    long int filecount=0;
-    filecount = Table_model_image->rowCount()+Table_model_gif->rowCount()+Table_model_video->rowCount();
-    if(filecount>0)
-    {
-        ui->label_FileCount->setVisible(1);
-        ui->label_FileCount->setText(QString(tr("File count: %1")).arg(filecount));
-    }
-    else
-    {
-        ui->label_FileCount->setVisible(0);
-    }
-    return 0;
-}
-
+//保存当前文件列表
 int MainWindow::Table_Save_Current_Table_Filelist()
 {
     QString Table_FileList_ini = Current_Path+"/Table_FileList.ini";
@@ -482,7 +535,31 @@ int MainWindow::Table_Save_Current_Table_Filelist()
     }
     return 0;
 }
-
+void MainWindow::on_pushButton_SaveFileList_clicked()
+{
+    if(Table_model_video->rowCount()<=0&&Table_model_image->rowCount()<=0&&Table_model_gif->rowCount()<=0)
+    {
+        QMessageBox *MSG = new QMessageBox();
+        MSG->setWindowTitle(tr("Error"));
+        MSG->setText(tr("File list is empty!"));
+        MSG->setIcon(QMessageBox::Warning);
+        MSG->setModal(false);
+        MSG->show();
+        return;
+    }
+    this->setAcceptDrops(0);//禁止drop file
+    ui->pushButton_Start->setEnabled(0);//禁用start button
+    ui->pushButton_ClearList->setEnabled(0);
+    ui->pushButton_RemoveItem->setEnabled(0);
+    ui->pushButton_CustRes_cancel->setEnabled(0);
+    ui->pushButton_CustRes_apply->setEnabled(0);
+    ui->pushButton_ReadFileList->setEnabled(0);
+    ui->pushButton_SaveFileList->setEnabled(0);
+    ui->pushButton_BrowserFile->setEnabled(0);
+    emit Send_TextBrowser_NewMessage(tr("Write to the file, please wait."));
+    Table_Save_Current_Table_Filelist();
+    QtConcurrent::run(this, &MainWindow::Table_Save_Current_Table_Filelist_Watchdog);
+}
 int MainWindow::Table_Save_Current_Table_Filelist_Watchdog()
 {
     QString Table_FileList_ini = Current_Path+"/Table_FileList.ini";
@@ -493,18 +570,19 @@ int MainWindow::Table_Save_Current_Table_Filelist_Watchdog()
     emit Send_Table_Save_Current_Table_Filelist_Finished();
     return 0;
 }
-
 int MainWindow::Table_Save_Current_Table_Filelist_Finished()
 {
-    this->setAcceptDrops(1);//禁止drop file
-    ui->pushButton_Start->setEnabled(1);//禁用start button
-    ui->groupBox_OutPut->setEnabled(1);
-    ui->pushButton_ClearList->setEnabled(1);
-    ui->pushButton_RemoveItem->setEnabled(1);
-    ui->checkBox_ReProcFinFiles->setEnabled(1);
+    if(Waifu2xMain.isRunning()==false)
+    {
+        this->setAcceptDrops(1);//启用drop file
+        ui->pushButton_ClearList->setEnabled(1);
+        ui->pushButton_RemoveItem->setEnabled(1);
+        ui->pushButton_ReadFileList->setEnabled(1);
+        ui->pushButton_BrowserFile->setEnabled(1);
+    }
     ui->pushButton_CustRes_cancel->setEnabled(1);
     ui->pushButton_CustRes_apply->setEnabled(1);
-    ui->pushButton_ReadFileList->setEnabled(1);
+    ui->pushButton_Start->setEnabled(1);//启用start button
     ui->pushButton_SaveFileList->setEnabled(1);
     emit Send_TextBrowser_NewMessage(tr("File list saved successfully!"));
     //===
@@ -517,7 +595,6 @@ int MainWindow::Table_Save_Current_Table_Filelist_Finished()
     //===
     return 0;
 }
-
 int MainWindow::Table_Read_Saved_Table_Filelist()
 {
     QString Table_FileList_ini = Current_Path+"/Table_FileList.ini";
@@ -572,7 +649,7 @@ int MainWindow::Table_Read_Saved_Table_Filelist()
             Custom_resolution_list.append(res_map);
         }
         emit Send_progressbar_Add();
-        Delay_msec_sleep(100);
+        //Delay_msec_sleep(100);
     }
     //========= 加载gif ========
     for(int i=0; i<rowCount_gif; i++)
@@ -609,7 +686,7 @@ int MainWindow::Table_Read_Saved_Table_Filelist()
             Custom_resolution_list.append(res_map);
         }
         emit Send_progressbar_Add();
-        Delay_msec_sleep(100);
+        //Delay_msec_sleep(100);
     }
     //========= 加载video ========
     for(int i=0; i<rowCount_video; i++)
@@ -646,34 +723,26 @@ int MainWindow::Table_Read_Saved_Table_Filelist()
             Custom_resolution_list.append(res_map);
         }
         emit Send_progressbar_Add();
-        Delay_msec_sleep(100);
+        //Delay_msec_sleep(100);
     }
     //====================
-    if(!ui->checkBox_ReProcFinFiles->isChecked())
-    {
-        emit Send_MovToFinedList();
-    }
-    emit Send_Table_FileCount_reload();
     emit Send_Table_Read_Saved_Table_Filelist_Finished();
     return 0;
 }
-
 int MainWindow::Table_Read_Saved_Table_Filelist_Finished()
 {
     Progressbar_MaxVal = 0;
     Progressbar_CurrentVal = 0;
     progressbar_clear();
     //====
+    ui_tableViews_setUpdatesEnabled(true);
     this->setAcceptDrops(1);
     ui->pushButton_Start->setEnabled(1);
-    ui->groupBox_OutPut->setEnabled(1);
-    ui->pushButton_ClearList->setEnabled(1);
-    ui->pushButton_RemoveItem->setEnabled(1);
-    ui->checkBox_ReProcFinFiles->setEnabled(1);
     ui->pushButton_CustRes_cancel->setEnabled(1);
     ui->pushButton_CustRes_apply->setEnabled(1);
     ui->pushButton_ReadFileList->setEnabled(1);
     ui->pushButton_SaveFileList->setEnabled(1);
+    ui->pushButton_BrowserFile->setEnabled(1);
     QString Table_FileList_ini = Current_Path+"/Table_FileList.ini";
     if(!QFile::exists(Table_FileList_ini))
     {
@@ -688,8 +757,6 @@ int MainWindow::Table_Read_Saved_Table_Filelist_Finished()
     {
         ui->label_DropFile->setVisible(0);//隐藏文件投放label
         ui->tableView_image->setVisible(1);
-        ui->pushButton_ClearList->setVisible(1);
-        ui->pushButton_RemoveItem->setVisible(1);
     }
     //========= gif ========
     int rowCount_gif = configIniRead->value("/table_gif/rowCount").toInt();
@@ -697,8 +764,6 @@ int MainWindow::Table_Read_Saved_Table_Filelist_Finished()
     {
         ui->label_DropFile->setVisible(0);//隐藏文件投放label
         ui->tableView_gif->setVisible(1);
-        ui->pushButton_ClearList->setVisible(1);
-        ui->pushButton_RemoveItem->setVisible(1);
     }
     //========= video ========
     int rowCount_video = configIniRead->value("/table_video/rowCount").toInt();
@@ -706,12 +771,18 @@ int MainWindow::Table_Read_Saved_Table_Filelist_Finished()
     {
         ui->label_DropFile->setVisible(0);//隐藏文件投放label
         ui->tableView_video->setVisible(1);
-        ui->pushButton_ClearList->setVisible(1);
-        ui->pushButton_RemoveItem->setVisible(1);
     }
+    //====================
     ui->tableView_gif->scrollToBottom();
     ui->tableView_image->scrollToBottom();
     ui->tableView_video->scrollToBottom();
+    QScrollBar *image_ScrBar = ui->tableView_image->horizontalScrollBar();
+    image_ScrBar->setValue(0);
+    QScrollBar *gif_ScrBar = ui->tableView_gif->horizontalScrollBar();
+    gif_ScrBar->setValue(0);
+    QScrollBar *video_ScrBar = ui->tableView_video->horizontalScrollBar();
+    video_ScrBar->setValue(0);
+    //============
     Send_TextBrowser_NewMessage(tr("File list update is complete!"));
     //====
     progressbar_SetToMax(Progressbar_MaxVal);
@@ -723,83 +794,74 @@ int MainWindow::Table_Read_Saved_Table_Filelist_Finished()
         Send_TextBrowser_NewMessage(tr("The file list saved last time is empty."));
         progressbar_clear();
     }
+    //==
+    Table_FileCount_reload();
     //===
-    ui->pushButton_ReadFileList->setText(tr("Read Files List"));
+    ui->label_DropFile->setText(tr("Drag and drop files or folders here\n(Image, GIF and Video)"));
     //===
     return 0;
 }
-
-void MainWindow::on_tableView_image_clicked(const QModelIndex &index)
-{
-    int curRow_image_new = ui->tableView_image->currentIndex().row();
-    if(curRow_image_new == curRow_image)
-    {
-        curRow_image = -1;
-        ui->tableView_image->clearSelection();
-    }
-    else
-    {
-        curRow_image = curRow_image_new;
-    }
-    curRow_gif = -1;
-    curRow_video = -1;
-    ui->tableView_gif->clearSelection();
-    ui->tableView_video->clearSelection();
-}
-
-void MainWindow::on_tableView_gif_clicked(const QModelIndex &index)
-{
-    curRow_image = -1;
-    int curRow_gif_new = ui->tableView_gif->currentIndex().row();
-    if(curRow_gif_new == curRow_gif)
-    {
-        curRow_gif = -1;
-        ui->tableView_gif->clearSelection();
-    }
-    else
-    {
-        curRow_gif = curRow_gif_new;
-    }
-    curRow_video = -1;
-    ui->tableView_image->clearSelection();
-    ui->tableView_video->clearSelection();
-}
-
-void MainWindow::on_tableView_video_clicked(const QModelIndex &index)
-{
-    curRow_image = -1;
-    curRow_gif = -1;
-    int curRow_video_new = ui->tableView_video->currentIndex().row();
-    if(curRow_video_new == curRow_video)
-    {
-        curRow_video = -1;
-        ui->tableView_video->clearSelection();
-    }
-    else
-    {
-        curRow_video = curRow_video_new;
-    }
-    ui->tableView_image->clearSelection();
-    ui->tableView_gif->clearSelection();
-}
-
 void MainWindow::on_tableView_image_doubleClicked(const QModelIndex &index)
 {
     if(curRow_image==-1)return;
     QModelIndex a;
-    on_tableView_image_clicked(a);
+    on_tableView_image_pressed(a);
 }
-
 void MainWindow::on_tableView_gif_doubleClicked(const QModelIndex &index)
 {
     if(curRow_gif==-1)return;
     QModelIndex a;
-    on_tableView_gif_clicked(a);
+    on_tableView_gif_pressed(a);
 }
-
 void MainWindow::on_tableView_video_doubleClicked(const QModelIndex &index)
 {
     if(curRow_video==-1)return;
     QModelIndex a;
-    on_tableView_video_clicked(a);
+    on_tableView_video_pressed(a);
+}
+void MainWindow::on_tableView_image_pressed(const QModelIndex &index)
+{
+    curRow_image = ui->tableView_image->currentIndex().row();
+    curRow_gif = -1;
+    curRow_video = -1;
+    ui->tableView_gif->clearSelection();
+    ui->tableView_video->clearSelection();
+}
+void MainWindow::on_tableView_gif_pressed(const QModelIndex &index)
+{
+    curRow_gif = ui->tableView_gif->currentIndex().row();
+    curRow_image = -1;
+    curRow_video = -1;
+    ui->tableView_image->clearSelection();
+    ui->tableView_video->clearSelection();
+}
+void MainWindow::on_tableView_video_pressed(const QModelIndex &index)
+{
+    curRow_video = ui->tableView_video->currentIndex().row();
+    curRow_image = -1;
+    curRow_gif = -1;
+    ui->tableView_image->clearSelection();
+    ui->tableView_gif->clearSelection();
+}
+/*
+启用 or 禁用 三个文件列表的排序功能
+*/
+void MainWindow::Table_EnableSorting(bool EnableSorting)
+{
+    ui->tableView_video->horizontalHeader()->setSortIndicatorShown(EnableSorting);
+    ui->tableView_gif->horizontalHeader()->setSortIndicatorShown(EnableSorting);
+    ui->tableView_image->horizontalHeader()->setSortIndicatorShown(EnableSorting);
+    //=====
+    ui->tableView_image->setSortingEnabled(EnableSorting);
+    ui->tableView_gif->setSortingEnabled(EnableSorting);
+    ui->tableView_video->setSortingEnabled(EnableSorting);
+}
+/*
+启用/禁用 文件列表table的UI更新
+*/
+void MainWindow::ui_tableViews_setUpdatesEnabled(bool isEnabled)
+{
+    ui->tableView_video->setUpdatesEnabled(isEnabled);
+    ui->tableView_gif->setUpdatesEnabled(isEnabled);
+    ui->tableView_image->setUpdatesEnabled(isEnabled);
 }

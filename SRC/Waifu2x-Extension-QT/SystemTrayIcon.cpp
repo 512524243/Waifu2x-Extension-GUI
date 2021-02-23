@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2020  Aaron Feng
+    Copyright (C) 2021  Aaron Feng
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -21,7 +21,7 @@
 #include "ui_mainwindow.h"
 
 /*
-托盘的实现参考了来自简书的文章:
+托盘图标的实现参考了来自简书的文章:
 <<Qt5 程序系统托盘>>--小Q_wang
 https://www.jianshu.com/p/a000044f1f4a
 */
@@ -33,7 +33,7 @@ void MainWindow::Init_SystemTrayIcon()
 {
     //初始化图标
     systemTray->setIcon(*MainIcon_QIcon);
-    systemTray->setToolTip("Waifu2x-Extension-GUI");
+    systemTray->setToolTip(tr("Waifu2x-Extension-GUI\nRight-click to show the menu."));
     //初始化点击动作
     connect(systemTray,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(on_activatedSysTrayIcon(QSystemTrayIcon::ActivationReason)));
     //初始化菜单动作

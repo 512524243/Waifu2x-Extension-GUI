@@ -1,5 +1,5 @@
 ﻿/*
-    Copyright (C) 2020  Aaron Feng
+    Copyright (C) 2021  Aaron Feng
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -32,37 +32,37 @@ int main(int argc, char *argv[])
 }
 
 /*
-Brief change log:
-- 新特性:为兼容性测试增加进度条.
-- 更新FFmpeg&FFprobe.
-- 更正错误的描述.
-- 补全多语言翻译.
-- 修复bug.
-----------------------------
-Detailed change log:
-v2.56.41:
-- 新特性:为兼容性测试增加进度条.
-- 更新FFmpeg&FFprobe.
-- 修正错误的tooltip.
-- 修复bug:特殊情况下未删除上次的关机标记.
-- 补全多语言翻译.
-- 整理代码结构.
+Change log:
+
+v3.11.21-beta:
+- Optimize performance.
+- Update ImageMagick,FFmpeg&FFprobe.
+- Fix bug: Engine settings are pre-loaded even though it's not being used.
+- Fix bug: Unable to overwrite files sometime.
+
 --------------------------------------------------------------------------
 To do:
-- 移植到Linux.
+- 在SRMD和REALSR正式加入cpu支持后, 在GPU ID tooltip上添加[★ "-1" is CPU,others are GPUs ★]
 ---------------------------------------------------------------------------
 Integrated component:
-- gifsicle version 1.92(release)
-- SoX 14.4.2-win32(release)
-- waifu2x-caffe 1.2.0.3
-- Waifu2x-converter e7de04d
-- waifu2x-ncnn-vulkan 20200818
-- SRMD-ncnn-Vulkan 20200818
-- realsr-ncnn-vulkan 20200818
-- ImageMagick 7.0.10-27 Q16 x64 2020-08-10
-- Anime4KCPP v2.3.0
-- FFmpeg&FFprobe 20200831-4a11a6f
+- gifsicle version 1.92
+- SoX 14.4.2-win32
+- waifu2x-caffe 1.2.0.4
+- Waifu2x-converter 9e0284ae23d43c990efb6320253ff0f1e3776854
+- Waifu2x-NCNN-Vulkan 20210210
+- SRMD-NCNN-Vulkan 20210210
+- RealSR-NCNN-Vulkan 20210210
+- ImageMagick 7.0.11-1-portable-Q16-x64
+- Anime4KCPP v2.5.0
+- FFmpeg&FFprobe 2021-02-20-git-51a9f487ae-full_build
 - NirCmd v2.86
----
-Icons made by : Freepik (https://www.flaticon.com/authors/freepik) From Flaticon : https://www.flaticon.com/
+- Ghostscript 9.53.3
+- GNU Wget 1.20.3
+- rife-ncnn-vulkan 20210210
+- cain-ncnn-vulkan 20210210
+---------------------------------------------------------------------------
+Icons made by :
+Freepik (https://www.flaticon.com/authors/freepik) From Flaticon : https://www.flaticon.com/
+Roundicons (https://www.flaticon.com/authors/roundicons) From Flaticon : https://www.flaticon.com/
+Icongeek26 (https://www.flaticon.com/authors/Icongeek26) From Flaticon : https://www.flaticon.com/
 */
